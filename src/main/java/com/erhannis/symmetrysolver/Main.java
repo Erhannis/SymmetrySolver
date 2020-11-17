@@ -23,7 +23,7 @@ public class Main {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
-    int FACES = 8;
+    int FACES = 12;
     int N;
     switch (FACES) {
       case 8:
@@ -34,7 +34,7 @@ public class Main {
         break;
       default:
         throw new IllegalArgumentException("Unhandled face count: " + FACES);
-    }
+    }    
     
     ArrayList<Integer> dims = new ArrayList<>();
     for (int i = 0; i < N; i++) {
@@ -47,6 +47,8 @@ public class Main {
     for (int i = 1; i <= 5; i++) {
       dimToColor.add(i);
     }
+    
+    
     MeUtils.runRecursion((idxs) -> {
       idxs = IntStream.of(idxs)
                 .map(i -> dimToColor.get(i))
