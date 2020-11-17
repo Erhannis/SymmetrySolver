@@ -12,6 +12,10 @@ package com.erhannis.symmetrysolver;
 public class Face {
   public Polyhedron parent;
   public Edge[] edges;
+  /**
+   * clockwise: vertex, edge, vertex, edge...
+   */
+  public Vertex[] vertices; // Not required for symmetry, only for rendering
   
   public Integer nextColor(Integer color) {
     if (color == null) {

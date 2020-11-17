@@ -5,9 +5,14 @@
  */
 package com.erhannis.symmetrysolver;
 
+import com.erhannis.javastl.Stl;
+import com.erhannis.mathnstuff.MeMath;
 import com.erhannis.mathnstuff.MeUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Random;
 
 /**
  *
@@ -175,5 +180,128 @@ public class Polyhedron {
         throw new RuntimeException("not all faces reached by traversal");
       }
     }
+  }
+
+  /**
+   * Don't call this more than once
+   */
+  public void computeVertices() {
+    HashSet<Vertex> vertices = new HashSet<>();
+    for (Face f: this.faces) {
+      for (Edge e: f.edges) {
+        if (e.va == null) {
+          e.va = new Vertex();
+          vertices.add(e.va);
+          
+          Edge e2 = e;
+          do {
+            e2.dual.vb = e2.va;
+            e2 = e2.dual;
+            e2.next().va = e2.vb;
+            e2 = e2.next();
+          } while (e2 != e); //TODO Like, I guess with a malformed polyhedron this might not happen
+        }
+      }
+    }
+    for (Face f: this.faces) {
+      for (Edge e: f.edges) {
+        if (e.va == null) {
+          throw new RuntimeException("e.va == null!!");
+        }
+        if (e.vb == null) {
+          throw new RuntimeException("e.vb == null!!");
+        }
+      }    
+    }
+    for (Face f: this.faces) {
+      ArrayList<Vertex> vs = new ArrayList<>();
+      for (Edge e: f.edges) {
+        vs.add(e.va);
+      }
+      f.vertices = vs.toArray(new Vertex[0]);
+    }
+    
+    //System.out.println("Computed " + vertices.size() + " vertices");
+    // Distribute vertices in space
+    Random r = new Random();
+    for (Vertex v: vertices) {
+      v.position = new double[]{r.nextDouble(), r.nextDouble(), r.nextDouble()};
+    }
+    
+    HashMap<Vertex, HashSet<Vertex>> neighbors = new HashMap<>();
+    for (Face f: this.faces) {
+      for (Edge e: f.edges) {
+        HashSet<Vertex> nbs = neighbors.getOrDefault(e.va, new HashSet<Vertex>());
+        nbs.add(e.vb);
+        neighbors.put(e.va, nbs);
+      }
+    }
+    
+    for (int iters = 0; iters < 10000; iters++) {
+      // Calc center of mass
+      double[] sum = new double[]{0,0,0};
+      for (Vertex v: vertices) {
+        sum[0] += v.position[0];
+        sum[1] += v.position[1];
+        sum[2] += v.position[2];
+      }
+      sum[0] /= vertices.size();
+      sum[1] /= vertices.size();
+      sum[2] /= vertices.size();
+      
+      // Center on origin
+      for (Vertex v: vertices) {
+        v.position[0] -= sum[0];
+        v.position[1] -= sum[1];
+        v.position[2] -= sum[2];
+      }
+      
+      // Find max dist
+      double maxSqr = 0;
+      for (Vertex v: vertices) {
+        double distSqr = MeMath.vectorLengthSqr(v.position);
+        if (distSqr > maxSqr) {
+          maxSqr = distSqr;
+        }
+      }
+      // Rescale
+      for (Vertex v: vertices) {
+        MeMath.vectorScaleIP(v.position, 1/Math.sqrt(maxSqr));
+      }
+      
+      // Apply forces
+      HashMap<Vertex, double[]> forces = new HashMap<>();
+      for (Vertex v0: vertices) {
+        double[] force = new double[]{0,0,0};
+        for (Vertex v1: neighbors.get(v0)) {
+          // Linear, for now
+          double[] f0 = MeMath.vectorSubtract(v1.position, v0.position);
+          double d0 = MeMath.vectorLength(f0);
+          MeMath.vectorAddIP(force, MeMath.vectorScaleIP(f0, d0));
+        }
+        forces.put(v0, MeMath.vectorScaleIP(force, 0.1));
+      }
+      for (Vertex v0: vertices) {
+        MeMath.vectorAddIP(v0.position, forces.get(v0));
+      }
+    }
+  }
+  
+  /**
+   * This is, ehh, not exactly correct
+   */
+  public String render() {
+    ArrayList<double[]> points = new ArrayList<>();
+    for (Face f: faces) {
+      for (int i = 0; i < f.vertices.length; i++) {
+        double[] a = f.vertices[(i+2)%f.vertices.length].position;
+        double[] b = f.vertices[(i+1)%f.vertices.length].position;
+        double[] c = f.vertices[i].position;
+        points.add(a);
+        points.add(b);
+        points.add(c);
+      }
+    }
+    return Stl.pointsToStl(points.toArray(new double[0][0]), "polyhedron");
   }
 }

@@ -5,17 +5,34 @@
  */
 package com.erhannis.symmetrysolver;
 
+import java.util.stream.Stream;
+
 /**
- *
+ * Half-edge, maybe.  There are two associated with an actual "edge", one for
+ * each face attached to it.
  * @author erhannis
  */
 public class Edge {
   public Face parent;
   public Edge dual;
   public Integer color;
+  // CCW vertex
+  public Vertex va; // Not required for symmetry, only for rendering
+  // CW vertex
+  public Vertex vb; // Not required for symmetry, only for rendering
   
   public void match(Edge e) {
     this.dual = e;
     e.dual = this;
+  }
+  
+  public Edge next() {
+    int idx;
+    for (idx = 0; idx < parent.edges.length; idx++) {
+      if (parent.edges[idx] == this) {
+        break;
+      }
+    }
+    return parent.edges[(idx+1) % parent.edges.length];
   }
 }

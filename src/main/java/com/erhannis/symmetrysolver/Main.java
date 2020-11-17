@@ -5,6 +5,7 @@
  */
 package com.erhannis.symmetrysolver;
 
+import com.erhannis.javastl.Stl;
 import com.erhannis.mathnstuff.MeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +24,11 @@ public class Main {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
+    Polyhedron p = Polyhedron.dodecahedron();
+    p.computeVertices();
+    System.out.println(p.render());
+    if (1 == 1) return;
+    
     int FACES = 12;
     int N;
     switch (FACES) {
