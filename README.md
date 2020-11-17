@@ -23,6 +23,10 @@ R*G*B*
 R*BG
 R*B*G*
 
+I *think* such mappings are equivalent to like, symmetry groups or something, but I'm not totally sure.
+
+I may extend the program to deal with transformations in 3d space, after I mess with the mappings.
+
 This program is released under the Apache 2.0 License.
 
 -Erhannis
