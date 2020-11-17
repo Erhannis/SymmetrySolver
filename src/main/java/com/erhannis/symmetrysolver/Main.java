@@ -23,7 +23,7 @@ public class Main {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
-    int FACES = 12;
+    int FACES = 8;
     int N;
     switch (FACES) {
       case 8:
@@ -67,7 +67,7 @@ public class Main {
       try {
         m = Mapping.fromArray(idxs);
       } catch (IllegalArgumentException err) {
-        //System.out.println("illegal mapping "+Arrays.toString(idxs));
+//        System.out.println("illegal mapping "+Arrays.toString(idxs));
         return;
       }
 
@@ -80,15 +80,15 @@ public class Main {
       } else {
         //System.out.println("failure "+Arrays.toString(idxs));
       }
-      /*
+/*      
       for (int j = 0; j < p.faces.length; j++) {
         Face f = p.faces[j];
-        System.out.println("face f");
+        System.out.println("face " + j);
         for (int i = 0; i < f.edges.length; i++) {
-          System.out.println(f.edges[i].color + " " + f.edges[i].dual.color);
+          System.out.println(i + ": " + f.edges[i].color + " " + f.edges[i].dual.color);
         }
       }
-      */
+*/
     }, dims.stream().mapToInt(i -> i).toArray());
     System.out.println("done");
   }
@@ -107,7 +107,7 @@ public class Main {
             if (e.dual.color == null) {
               e.dual.color = m.apply(e.color);
               modified = true;
-            } else if (e.dual.color != e.color) {
+            } else if (e.dual.color != m.apply(e.color)) {
               //TODO I'm not even sure how to give an informative error, here
 //              System.err.println("Color mismatch across edges");
               return false;
