@@ -10,6 +10,7 @@ package com.erhannis.symmetrysolver;
  * @author erhannis
  */
 public class Edge {
+  public Face parent;
   public Edge dual;
   public Integer color;
   

@@ -27,7 +27,7 @@ public interface Mapping extends Function<Integer, Integer> {
    * @param array
    * @return 
    */
-  public static Mapping fromArray(Integer... array) {
+  public static Mapping fromArray(int... array) {
     Mapping m = (x) -> {
       if (x == null) {
         return null;
