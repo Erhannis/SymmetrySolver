@@ -30,11 +30,11 @@ public class Polyhedron {
   public static Polyhedron dodecahedron() {
     Polyhedron p = new Polyhedron();
     p.faces = new Face[12];
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < p.faces.length; i++) {
       Face f = new Face();
       f.parent = p;
       f.edges = new Edge[5];
-      for (int j = 0; j < 5; j++) {
+      for (int j = 0; j < f.edges.length; j++) {
         f.edges[j] = new Edge();
         f.edges[j].parent = f;
       }
@@ -118,6 +118,56 @@ public class Polyhedron {
     p.faces[6].edges[2].match(p.faces[7].edges[1]);
     
     p.validateOrThrow();
+    return p;
+  }
+
+  /**
+   * This is an experiment, and may not work well.
+   * @return 
+   */
+  public static Polyhedron tubeThing() {
+    Polyhedron p = new Polyhedron();
+    p.faces = new Face[10];
+    for (int i = 0; i < p.faces.length; i++) {
+      Face f = new Face();
+      f.parent = p;
+      f.edges = new Edge[4];
+      for (int j = 0; j < f.edges.length; j++) {
+        f.edges[j] = new Edge();
+        f.edges[j].parent = f;
+      }
+      p.faces[i] = f;
+    }
+    p.faces[0].edges[0].match(p.faces[1].edges[2]);
+    p.faces[0].edges[1].match(p.faces[2].edges[3]);
+    p.faces[0].edges[2].match(p.faces[3].edges[0]);
+    p.faces[0].edges[3].match(p.faces[4].edges[1]);
+
+    p.faces[1].edges[3].match(p.faces[4].edges[0]);
+    p.faces[1].edges[0].match(p.faces[5].edges[2]);
+    p.faces[1].edges[1].match(p.faces[2].edges[0]);
+
+    p.faces[5].edges[3].match(p.faces[8].edges[0]);
+    p.faces[5].edges[0].match(p.faces[9].edges[2]);
+    p.faces[5].edges[1].match(p.faces[6].edges[0]);
+
+    p.faces[2].edges[1].match(p.faces[6].edges[3]);
+    p.faces[2].edges[2].match(p.faces[3].edges[1]);
+
+    p.faces[6].edges[1].match(p.faces[9].edges[1]);
+    p.faces[6].edges[2].match(p.faces[7].edges[1]);
+
+    p.faces[3].edges[2].match(p.faces[7].edges[0]);
+    p.faces[3].edges[3].match(p.faces[4].edges[2]);
+
+    p.faces[7].edges[2].match(p.faces[9].edges[0]);
+    p.faces[7].edges[3].match(p.faces[8].edges[2]);
+
+    p.faces[4].edges[3].match(p.faces[8].edges[1]);
+
+    p.faces[8].edges[3].match(p.faces[9].edges[3]);
+
+    p.validateOrThrow();    
     return p;
   }
   
@@ -273,8 +323,18 @@ public class Polyhedron {
       HashMap<Vertex, double[]> forces = new HashMap<>();
       for (Vertex v0: vertices) {
         double[] force = new double[]{0,0,0};
+        //for (Vertex v1: neighbors.get(v0)) {
+        for (Vertex v1: vertices) {
+          if (v1 == v0) {
+            continue;
+          }
+          double[] f0 = MeMath.vectorSubtract(v1.position, v0.position);
+          double d0 = MeMath.vectorLength(f0);
+          MeMath.vectorNormalizeIP(f0);
+          MeMath.vectorAddIP(force, MeMath.vectorScaleIP(f0, 1/d0));
+        }
+        MeMath.vectorScaleIP(force, 1/vertices.size());
         for (Vertex v1: neighbors.get(v0)) {
-          // Linear, for now
           double[] f0 = MeMath.vectorSubtract(v1.position, v0.position);
           double d0 = MeMath.vectorLength(f0);
           MeMath.vectorAddIP(force, MeMath.vectorScaleIP(f0, d0));
@@ -288,7 +348,14 @@ public class Polyhedron {
   }
   
   /**
-   * This is, ehh, not exactly correct
+   * This is, ehh, not exactly correct.<br/>
+   * <br/>
+   * Example:<br/>
+   * <code>
+   * Polyhedron p = Polyhedron.dodecahedron();<br/>
+   * p.computeVertices();<br/>
+   * System.out.println(p.render());<br/>
+   * </code>
    */
   public String render() {
     ArrayList<double[]> points = new ArrayList<>();

@@ -24,9 +24,16 @@ public class Main {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
-    Polyhedron p = Polyhedron.dodecahedron();
+    Polyhedron p;
+
+    p = Polyhedron.dodecahedron();
     p.computeVertices();
-    System.out.println(p.render());
+    MeUtils.writeToFileOrDie("/home/erhannis/temp/dodecahedron.stl", p.render());
+    
+    p = Polyhedron.tubeThing();
+    p.computeVertices();
+    MeUtils.writeToFileOrDie("/home/erhannis/temp/tubething.stl", p.render());
+    
     if (1 == 1) return;
     
     int FACES = 12;
