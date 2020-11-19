@@ -8,6 +8,7 @@ package com.erhannis.symmetrysolver;
 import com.erhannis.javastl.Stl;
 import com.erhannis.mathnstuff.MeMath;
 import com.erhannis.mathnstuff.MeUtils;
+import com.erhannis.mathnstuff.Multivector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -370,5 +371,74 @@ public class Polyhedron {
       }
     }
     return Stl.pointsToStl(points.toArray(new double[0][0]), "polyhedron");
+  }
+  
+  /**
+   * Calculate symmetry matrices
+   * @return double[FACE][Y][X]
+   */
+  public double[][][] calcSymmetryMatrices() {
+    double[][][] result = new double[faces.length][][];
+    result[0] = new double[][]{{1,0,0},{0,1,0},{0,0,1}};
+    
+    Face prime = faces[0];
+    double[] primeCenter = new double[3];
+    for (Edge e: prime.edges) {
+      MeMath.vectorAddIP(primeCenter, e.va.position);
+    }
+    MeMath.vectorScaleIP(primeCenter, 1/prime.edges.length);
+    double[] primeEdge = null;
+    boolean primeMirrored = false;
+    for (Edge e: prime.edges) {
+      if (e.color == 1) {
+        primeMirrored = false;
+        primeEdge = MeMath.vectorSubtract(e.va.position, primeCenter);
+        break;
+      } else if (e.color == -1) {
+        primeMirrored = true;
+        primeEdge = MeMath.vectorSubtract(e.vb.position, primeCenter);
+        break;
+      }
+    }
+    MeMath.vectorNormalizeIP(primeCenter);
+    MeMath.vectorNormalizeIP(primeEdge);
+    
+    for (int i = 1; i < faces.length; i++) {
+      Face secondary = faces[i];
+      double[] secondaryCenter = new double[3];
+      for (Edge e: secondary.edges) {
+        MeMath.vectorAddIP(secondaryCenter, e.va.position);
+      }
+      MeMath.vectorScaleIP(secondaryCenter, 1/secondary.edges.length);
+      double[] secondaryEdge = null;
+      boolean secondaryMirrored = false;
+      for (Edge e: secondary.edges) {
+        if (e.color == 1) {
+          secondaryMirrored = false;
+          secondaryEdge = MeMath.vectorSubtract(e.va.position, secondaryCenter);
+          break;
+        } else if (e.color == -1) {
+          secondaryMirrored = true;
+          secondaryEdge = MeMath.vectorSubtract(e.vb.position, secondaryCenter);
+          break;
+        }
+      }
+      MeMath.vectorNormalizeIP(secondaryCenter);
+      MeMath.vectorNormalizeIP(secondaryEdge);
+      
+      double[][] basis = {{1,0,0},{0,1,0},{0,0,1}};
+      
+      double[] localPrimeEdge = Multivector.rotate(primeEdge, primeCenter, secondaryCenter);
+      basis = Multivector.rotate(basis, primeCenter, secondaryCenter);
+      basis = Multivector.rotate(basis, localPrimeEdge, secondaryEdge);
+      
+      if (primeMirrored != secondaryMirrored) {
+        basis = Multivector.mirror(basis, secondaryCenter, secondaryEdge);
+      }
+      
+      result[i] = basis;
+    }
+    
+    return result;
   }
 }

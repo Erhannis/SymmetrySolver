@@ -7,6 +7,7 @@ package com.erhannis.symmetrysolver;
 
 import com.erhannis.javastl.Stl;
 import com.erhannis.mathnstuff.MeUtils;
+import com.erhannis.mathnstuff.Multivector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -24,17 +25,90 @@ public class Main {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
-    Polyhedron p;
+    {
+      double[] x = {1,1,1};
+      double[] a = {1,-3.5,0};
+      double[] b = {-2,0.5,0};
+      System.out.println("cxc " + Arrays.toString(Multivector.mirror(x, a, b)));
+      
+      if (1 == 1) return;
+    }
+    {
+      Multivector x = Multivector.fromVector(1,0,0).mulIP(Multivector.fromVector(0,1,0)).mulIP(Multivector.fromVector(0,0,1));
+      Multivector a = Multivector.fromVector(1.1,-0.3,0);
+      Multivector b = Multivector.fromVector(1.1,-0.3,-2);
+      Multivector c = Multivector.fromVector(0,0,1);
+      Multivector d = Multivector.fromVector(-1,-2,-3);
 
-    p = Polyhedron.dodecahedron();
-    p.computeVertices();
-    MeUtils.writeToFileOrDie("/home/erhannis/temp/dodecahedron.stl", p.render());
+//      System.out.println("a   " + a);
+//      System.out.println("xa " + x.mul(a));
+//      System.out.println("ax " + a.mul(x));
+//      System.out.println("xax " + x.mul(a).mul(x));
+
+      System.out.println("x   " + x);
+      System.out.println("a   " + a);
+      System.out.println("xax " + x.mul(a).mul(x));
+      System.out.println("b   " + b);
+      System.out.println("xbx " + x.mul(b).mul(x));
+      System.out.println("c   " + c);
+      System.out.println("xcx " + x.mul(c).mul(x));
+      System.out.println("a   " + d);
+      System.out.println("xdx " + x.mul(d).mul(x));
+      System.out.println("");
+      System.out.println("a-xax " + a.sub(x.mul(a).mul(x)));
+      System.out.println("b-xbx " + b.sub(x.mul(b).mul(x)));
+      System.out.println("c-xcx " + c.sub(x.mul(c).mul(x)));
+      System.out.println("d-xdx " + d.sub(x.mul(d).mul(x)));
+      
+      if (1 == 1) return;
+    }
+    {
+      System.out.println(Multivector.fromVector(1,0,0).innerIP(Multivector.fromVector(0,1,0)));
+      System.out.println(Multivector.fromVector(1,0,0).outerIP(Multivector.fromVector(0,1,0)));
+      Multivector a = Multivector.fromVector(1,0,0);
+      Multivector b = Multivector.fromVector(0,1,0);
+      Multivector c = Multivector.fromVector(1,1,1);
+      Multivector x = a.add(b).divSIP(2);
+      x = x.mulSIP(1/x.vectorNorm());
+      System.out.println("a " + a);
+      System.out.println("c " + c);
+      System.out.println("a*c " + a.inner(c));
+
+      System.out.println("");
+      System.out.println("x     " + x);
+      Multivector z = x.mul(a);
+      System.out.println("xa    " + z);
+      System.out.println("xac   " + z.mulIP(c));
+      System.out.println("xaca  " + z.mulIP(a));
+      System.out.println("xacax " + z.mulIP(x));
+      System.out.println("");
+
+      System.out.println("xacax " + x.mul(a).mulIP(c).mulIP(a).mulIP(x));
+      System.out.println("xacax " + Multivector.fromVector(Multivector.rotate(c.vectorComponent(), a.vectorComponent(), b.vectorComponent())));
+
+      double[][] xs = {c.vectorComponent(), c.vectorComponent(), c.vectorComponent(), {1,1,1},{1,0,0},{0,1,0},{0,0,1}};
+      double[][] ys = Multivector.rotate(xs, a.vectorComponent(), b.vectorComponent());
+      for (int i = 0; i < ys.length; i++) {
+        System.out.println("xa?ax " + i + " " + Arrays.toString(ys[i]));
+      }
+        
+      if (1 == 1) return;
+    }        
     
-    p = Polyhedron.tubeThing();
-    p.computeVertices();
-    MeUtils.writeToFileOrDie("/home/erhannis/temp/tubething.stl", p.render());
     
-    if (1 == 1) return;
+    {
+      Polyhedron p;
+
+      p = Polyhedron.dodecahedron();
+      p.computeVertices();
+      MeUtils.writeToFileOrDie("/home/erhannis/temp/dodecahedron.stl", p.render());
+
+      p = Polyhedron.tubeThing();
+      p.computeVertices();
+      MeUtils.writeToFileOrDie("/home/erhannis/temp/tubething.stl", p.render());
+      
+      if (1 == 1) return;
+    }
     
     int FACES = 12;
     int N;
