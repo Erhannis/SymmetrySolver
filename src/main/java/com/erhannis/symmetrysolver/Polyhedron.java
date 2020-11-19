@@ -400,7 +400,7 @@ public class Polyhedron {
    * @return double[FACE][Y][X]
    */
   public double[][][] calcSymmetryMatrices() {
-    int primeIdx = 0;
+    int primeIdx = 5;
     
     double[][][] result = new double[faces.length][][];
     result[primeIdx] = new double[][]{{1,0,0},{0,1,0},{0,0,1}};
@@ -485,10 +485,29 @@ public class Polyhedron {
       MeMath.vectorNormalizeIP(secondaryEdge);
       
       double[][] basis = {{1,0,0},{0,1,0},{0,0,1}};
+
+      double[] localPrimeEdge;
+      if ((Math.PI-MeMath.vectorAngle(primeCenter, secondaryCenter)) < 0.01 || MeMath.vectorLength(MeMath.vectorAdd(primeCenter, secondaryCenter)) < 0.01) {
+        System.out.println("face " + i + " center a: " + (Math.PI-MeMath.vectorAngle(primeCenter, secondaryCenter)));
+        System.out.println("face " + i + " center l: " + MeMath.vectorLength(MeMath.vectorAdd(primeCenter, secondaryCenter)));
+        // Centers opposed; rotate somehow else
+        double[] pivot = MeMath.crossProduct3d(primeCenter, primeEdge);
+        localPrimeEdge = Multivector.rotate2(primeEdge, primeCenter, pivot);
+        basis = Multivector.rotate2(basis, primeCenter, pivot);
+      } else {
+        localPrimeEdge = Multivector.rotate(primeEdge, primeCenter, secondaryCenter);
+        basis = Multivector.rotate(basis, primeCenter, secondaryCenter);
+      }
+
       
-      double[] localPrimeEdge = Multivector.rotate(primeEdge, primeCenter, secondaryCenter);
-      basis = Multivector.rotate(basis, primeCenter, secondaryCenter);
-      basis = Multivector.rotate(basis, localPrimeEdge, secondaryEdge);
+      if ((Math.PI-MeMath.vectorAngle(localPrimeEdge, secondaryEdge)) < 0.01 || MeMath.vectorLength(MeMath.vectorAdd(localPrimeEdge, secondaryEdge)) < 0.01) {
+        System.out.println("face " + i + " edges a: " + (Math.PI-MeMath.vectorAngle(localPrimeEdge, secondaryEdge)));
+        System.out.println("face " + i + " edges l: " + MeMath.vectorLength(MeMath.vectorAdd(localPrimeEdge, secondaryEdge)));
+        // Edges are approx opposed; rotate some other way
+        basis = Multivector.lineMirror(basis, secondaryCenter);
+      } else {
+        basis = Multivector.rotate(basis, localPrimeEdge, secondaryEdge);
+      }
       
       if (primeMirrored != secondaryMirrored) {
         basis = Multivector.mirror(basis, secondaryCenter, secondaryEdge);
