@@ -10,10 +10,16 @@ import com.erhannis.mathnstuff.MeMath;
 import com.erhannis.mathnstuff.MeUtils;
 import com.erhannis.mathnstuff.Multivector;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  *
@@ -372,16 +378,34 @@ public class Polyhedron {
     }
     return Stl.pointsToStl(points.toArray(new double[0][0]), "polyhedron");
   }
+
+  public String render(ArrayList<double[]> extras) {
+    ArrayList<double[]> points = new ArrayList<>();
+    for (Face f: faces) {
+      for (int i = 0; i < f.vertices.length; i++) {
+        double[] a = f.vertices[(i+2)%f.vertices.length].position;
+        double[] b = f.vertices[(i+1)%f.vertices.length].position;
+        double[] c = f.vertices[i].position;
+        points.add(a);
+        points.add(b);
+        points.add(c);
+      }
+    }
+    points.addAll(extras);
+    return Stl.pointsToStl(points.toArray(new double[0][0]), "polyhedron");
+  }
   
   /**
    * Calculate symmetry matrices
    * @return double[FACE][Y][X]
    */
   public double[][][] calcSymmetryMatrices() {
-    double[][][] result = new double[faces.length][][];
-    result[0] = new double[][]{{1,0,0},{0,1,0},{0,0,1}};
+    int primeIdx = 0;
     
-    Face prime = faces[0];
+    double[][][] result = new double[faces.length][][];
+    result[primeIdx] = new double[][]{{1,0,0},{0,1,0},{0,0,1}};
+    
+    Face prime = faces[primeIdx];
     double[] primeCenter = new double[3];
     for (Edge e: prime.edges) {
       MeMath.vectorAddIP(primeCenter, e.va.position);
@@ -402,8 +426,34 @@ public class Polyhedron {
     }
     MeMath.vectorNormalizeIP(primeCenter);
     MeMath.vectorNormalizeIP(primeEdge);
+
+    ArrayList<double[]> arrows2 = new ArrayList<>();
+    arrows2.add(MeMath.vectorScale(primeCenter, 2.0));
+    arrows2.add(MeMath.vectorScale(primeCenter, 0.7));
+    arrows2.add(MeMath.vectorAdd(MeMath.vectorScale(primeCenter, 0.7), MeMath.vectorScale(primeEdge, 0.2)));
     
-    for (int i = 1; i < faces.length; i++) {
+    ArrayList<double[]> arrows1 = new ArrayList<>();
+    arrows1.add(MeMath.vectorScale(primeCenter, 2.0));
+    arrows1.add(MeMath.vectorScale(primeCenter, 0.7));
+    arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(primeCenter, 0.7), MeMath.vectorScale(primeEdge, 0.2)));
+    for (Edge e: prime.edges) {
+      if (e.color == 1) {
+        arrows1.add(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(primeEdge, 0.1)));
+        arrows1.add(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(primeEdge, 0.1)));
+        arrows1.add(MeMath.vectorAdd(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(primeEdge, 0.1)), MeMath.vectorScale(primeCenter, 0.1)));
+        break;
+      } else if (e.color == -1) {
+        arrows1.add(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(primeEdge, 0.1)));
+        arrows1.add(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(primeEdge, 0.1)));
+        arrows1.add(MeMath.vectorAdd(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(primeEdge, 0.1)), MeMath.vectorScale(primeCenter, 0.1)));
+        break;
+      }
+    }
+    List<Integer> idxs = new ArrayList<>(IntStream.range(0, faces.length).mapToObj(i -> (Integer)i).collect(Collectors.toList()));
+    idxs.remove((Integer)primeIdx);
+    Collections.shuffle(idxs);
+    for (int i0 = 1; i0 < faces.length; i0++) {
+      int i = idxs.get(i0-1);
       Face secondary = faces[i];
       double[] secondaryCenter = new double[3];
       for (Edge e: secondary.edges) {
@@ -416,10 +466,18 @@ public class Polyhedron {
         if (e.color == 1) {
           secondaryMirrored = false;
           secondaryEdge = MeMath.vectorSubtract(e.va.position, secondaryCenter);
+          
+          arrows1.add(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(secondaryEdge, 0.1)));
+          arrows1.add(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(secondaryEdge, 0.1)));
+          arrows1.add(MeMath.vectorAdd(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(secondaryEdge, 0.1)), MeMath.vectorScale(secondaryCenter, 0.1)));
           break;
         } else if (e.color == -1) {
           secondaryMirrored = true;
           secondaryEdge = MeMath.vectorSubtract(e.vb.position, secondaryCenter);
+
+          arrows1.add(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(secondaryEdge, 0.1)));
+          arrows1.add(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(secondaryEdge, 0.1)));
+          arrows1.add(MeMath.vectorAdd(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(secondaryEdge, 0.1)), MeMath.vectorScale(secondaryCenter, 0.1)));
           break;
         }
       }
@@ -436,8 +494,39 @@ public class Polyhedron {
         basis = Multivector.mirror(basis, secondaryCenter, secondaryEdge);
       }
       
-      result[i] = basis;
+      double[][] basisT = {{basis[0][0],basis[1][0],basis[2][0]},{basis[0][1],basis[1][1],basis[2][1]},{basis[0][2],basis[1][2],basis[2][2]}};
+      result[i] = basisT;
+
+      /*
+      double[] checkCenter = Multivector.rotate(primeCenter, primeCenter, secondaryCenter);
+      checkCenter = Multivector.rotate(checkCenter, localPrimeEdge, secondaryEdge);
+
+      double[] checkEdge = Multivector.rotate(primeEdge, primeCenter, secondaryCenter);
+      checkEdge = Multivector.rotate(checkEdge, localPrimeEdge, secondaryEdge);
+      */      
+
+//      double[][] basisT = {{basis[0][0],basis[1][0],basis[2][0]},{basis[0][1],basis[1][1],basis[2][1]},{basis[0][2],basis[1][2],basis[2][2]}};
+      double[][] b = basisT;
+      double[] checkCenter = new double[]{MeMath.dotProduct(b[0], primeCenter),MeMath.dotProduct(b[1], primeCenter),MeMath.dotProduct(b[2], primeCenter)};
+      double[] checkEdge = new double[]{MeMath.dotProduct(b[0], primeEdge),MeMath.dotProduct(b[1], primeEdge),MeMath.dotProduct(b[2], primeEdge)};
+
+      arrows1.add(MeMath.vectorScale(secondaryCenter, 1.5));
+      arrows1.add(MeMath.vectorScale(secondaryCenter, 0.4));
+      arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(secondaryCenter, 0.4), MeMath.vectorScale(secondaryEdge, 0.2)));
+      
+      arrows1.add(MeMath.vectorScale(checkCenter, 1.25));
+      arrows1.add(MeMath.vectorScale(checkCenter, 0.8));
+      arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(checkCenter, 0.8), MeMath.vectorScale(checkEdge, 0.2)));
+      
+      double diff = MeMath.vectorLength(MeMath.vectorSubtract(secondaryCenter, checkCenter));
+      if (diff > 0.001) {
+        System.out.println("face " + i + " diff " + diff);
+        System.out.println(Arrays.toString(secondaryCenter));
+        System.out.println(Arrays.toString(checkCenter));
+      }
     }
+    
+    MeUtils.writeToFileOrDie("/home/erhannis/temp/d"+faces.length+"_plus.stl", this.render(arrows1));
     
     return result;
   }
