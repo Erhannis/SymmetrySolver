@@ -317,7 +317,7 @@ public class Polyhedron {
       }
       // Rescale
       for (Vertex v: vertices) {
-        MeMath.vectorScaleIP(v.position, 1/Math.sqrt(maxSqr));
+        MeMath.vectorScaleIP(v.position, 1.0/Math.sqrt(maxSqr));
       }
       
       // Apply forces
@@ -332,9 +332,9 @@ public class Polyhedron {
           double[] f0 = MeMath.vectorSubtract(v1.position, v0.position);
           double d0 = MeMath.vectorLength(f0);
           MeMath.vectorNormalizeIP(f0);
-          MeMath.vectorAddIP(force, MeMath.vectorScaleIP(f0, 1/d0));
+          MeMath.vectorAddIP(force, MeMath.vectorScaleIP(f0, -1.0/d0));
         }
-        MeMath.vectorScaleIP(force, 1/vertices.size());
+        MeMath.vectorScaleIP(force, 0.05/vertices.size());
         for (Vertex v1: neighbors.get(v0)) {
           double[] f0 = MeMath.vectorSubtract(v1.position, v0.position);
           double d0 = MeMath.vectorLength(f0);
@@ -386,7 +386,7 @@ public class Polyhedron {
     for (Edge e: prime.edges) {
       MeMath.vectorAddIP(primeCenter, e.va.position);
     }
-    MeMath.vectorScaleIP(primeCenter, 1/prime.edges.length);
+    MeMath.vectorScaleIP(primeCenter, 1.0/prime.edges.length);
     double[] primeEdge = null;
     boolean primeMirrored = false;
     for (Edge e: prime.edges) {
@@ -409,7 +409,7 @@ public class Polyhedron {
       for (Edge e: secondary.edges) {
         MeMath.vectorAddIP(secondaryCenter, e.va.position);
       }
-      MeMath.vectorScaleIP(secondaryCenter, 1/secondary.edges.length);
+      MeMath.vectorScaleIP(secondaryCenter, 1.0/secondary.edges.length);
       double[] secondaryEdge = null;
       boolean secondaryMirrored = false;
       for (Edge e: secondary.edges) {
