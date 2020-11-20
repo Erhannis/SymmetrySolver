@@ -526,8 +526,8 @@ public class Polyhedron {
 
       double[] localPrimeEdge;
       if ((Math.PI-MeMath.vectorAngle(primeCenter, secondaryCenter)) < 0.01 || MeMath.vectorLength(MeMath.vectorAdd(primeCenter, secondaryCenter)) < 0.01) {
-        System.out.println("face " + i + " center a: " + (Math.PI-MeMath.vectorAngle(primeCenter, secondaryCenter)));
-        System.out.println("face " + i + " center l: " + MeMath.vectorLength(MeMath.vectorAdd(primeCenter, secondaryCenter)));
+//        System.out.println("face " + i + " center a: " + (Math.PI-MeMath.vectorAngle(primeCenter, secondaryCenter)));
+//        System.out.println("face " + i + " center l: " + MeMath.vectorLength(MeMath.vectorAdd(primeCenter, secondaryCenter)));
         // Centers opposed; rotate somehow else
         double[] pivot = MeMath.crossProduct3d(primeCenter, primeEdge);
         localPrimeEdge = Multivector.rotate2(primeEdge, primeCenter, pivot);
@@ -539,8 +539,8 @@ public class Polyhedron {
 
       
       if ((Math.PI-MeMath.vectorAngle(localPrimeEdge, secondaryEdge)) < 0.01 || MeMath.vectorLength(MeMath.vectorAdd(localPrimeEdge, secondaryEdge)) < 0.01) {
-        System.out.println("face " + i + " edges a: " + (Math.PI-MeMath.vectorAngle(localPrimeEdge, secondaryEdge)));
-        System.out.println("face " + i + " edges l: " + MeMath.vectorLength(MeMath.vectorAdd(localPrimeEdge, secondaryEdge)));
+//        System.out.println("face " + i + " edges a: " + (Math.PI-MeMath.vectorAngle(localPrimeEdge, secondaryEdge)));
+//        System.out.println("face " + i + " edges l: " + MeMath.vectorLength(MeMath.vectorAdd(localPrimeEdge, secondaryEdge)));
         // Edges are approx opposed; rotate some other way
         basis = Multivector.lineMirror(basis, secondaryCenter);
       } else {

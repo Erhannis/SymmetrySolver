@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -62,7 +63,7 @@ public class Main {
     int N;
     switch (FACES) {
       case 2:
-        N = 3;
+        N = 5;
         break;
       case 8:
         N = 3;
@@ -125,13 +126,16 @@ public class Main {
         p.computeVertices();
         double[][][] mtx = p.calcSymmetryMatrices();
         for (int f = 0; f < mtx.length; f++) {
-          System.out.println("face " + f);
+          //System.out.println("face " + f);
+          System.out.println("new THREE.Matrix3().set(");
           for (int y = 0; y < mtx[f].length; y++) {
-            System.out.println(Arrays.toString(mtx[f][y]));
+            System.out.println(String.join(",", DoubleStream.of(mtx[f][y]).mapToObj(i->""+i).collect(Collectors.toList())) + ((y == mtx[f].length-1) ? "" : ","));
+            //System.out.println(Arrays.toString(mtx[f][y]));
           }
+          System.out.println("),");
         }
         //TODO Remove
-        MeUtils.writeToFileOrDie("/home/erhannis/temp/d"+FACES+".stl", p.render());
+        MeUtils.writeToFileOrDie("/home/erhannis/temp/d"+FACES+"_"+String.join(",",IntStream.of(idxs).mapToObj(i->""+i).collect(Collectors.toList()))+".stl", p.render());
         
         //System.exit(0);
         
@@ -152,9 +156,6 @@ public class Main {
   }
   
   public static boolean propagate(Polyhedron p, Mapping m) {
-    if (m.apply(1) == 1 && m.apply(2) == 2 && m.apply(3) == 3) {
-      System.out.println("//TODO Remove");
-    }
     boolean modified = true;
     while (modified) {
 //      System.out.println("loop");
@@ -212,7 +213,7 @@ public class Main {
     }
     
     if (!p.verifyColors(m)) {
-      System.err.println("Failed final color verification");
+//      System.err.println("Failed final color verification");
       return false;
     }
     
