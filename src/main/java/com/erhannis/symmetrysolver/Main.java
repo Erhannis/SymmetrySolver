@@ -58,9 +58,12 @@ public class Main {
       if (1 == 1) return;
     }
     
-    int FACES = 12;
+    int FACES = 2;
     int N;
     switch (FACES) {
+      case 2:
+        N = 3;
+        break;
       case 8:
         N = 3;
         break;
@@ -88,8 +91,12 @@ public class Main {
       idxs = IntStream.of(idxs)
                 .map(i -> dimToColor.get(i))
                 .toArray();
+      //TODO Weed out equivalent forms and clearly invalid forms
       Polyhedron p;
       switch (FACES) {
+        case 2:
+          p = Polyhedron.coin(N);
+          break;
         case 8:
           p = Polyhedron.d8();
           break;
@@ -123,9 +130,10 @@ public class Main {
             System.out.println(Arrays.toString(mtx[f][y]));
           }
         }
-        MeUtils.writeToFileOrDie("/home/erhannis/temp/dodecahedron.stl", p.render());
+        //TODO Remove
+        MeUtils.writeToFileOrDie("/home/erhannis/temp/d"+FACES+".stl", p.render());
         
-        System.exit(0);
+        //System.exit(0);
         
       } else {
         //System.out.println("failure "+Arrays.toString(idxs));
@@ -144,6 +152,9 @@ public class Main {
   }
   
   public static boolean propagate(Polyhedron p, Mapping m) {
+    if (m.apply(1) == 1 && m.apply(2) == 2 && m.apply(3) == 3) {
+      System.out.println("//TODO Remove");
+    }
     boolean modified = true;
     while (modified) {
 //      System.out.println("loop");
@@ -199,6 +210,12 @@ public class Main {
         }
       }
     }
+    
+    if (!p.verifyColors(m)) {
+      System.err.println("Failed final color verification");
+      return false;
+    }
+    
     return true;
   }
 }

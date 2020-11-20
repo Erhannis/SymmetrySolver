@@ -177,6 +177,29 @@ public class Polyhedron {
     p.validateOrThrow();    
     return p;
   }
+
+  public static Polyhedron coin(int edges) {
+    Polyhedron p = new Polyhedron();
+    p.faces = new Face[2];
+    for (int i = 0; i < p.faces.length; i++) {
+      Face f = new Face();
+      f.parent = p;
+      f.edges = new Edge[edges];
+      for (int j = 0; j < f.edges.length; j++) {
+        f.edges[j] = new Edge();
+        f.edges[j].parent = f;
+      }
+      p.faces[i] = f;
+    }
+    Face fa = p.faces[0];
+    Face fb = p.faces[1];
+    for (int i = 0; i < edges; i++) {
+      p.faces[0].edges[i].match(p.faces[1].edges[edges-i-1]);
+    }
+
+    p.validateOrThrow();    
+    return p;
+  }
   
   public void validateOrThrow() {
     int edgeCount = 0;
@@ -400,7 +423,7 @@ public class Polyhedron {
    * @return double[FACE][Y][X]
    */
   public double[][][] calcSymmetryMatrices() {
-    int primeIdx = 5;
+    int primeIdx = 0;
     
     double[][][] result = new double[faces.length][][];
     result[primeIdx] = new double[][]{{1,0,0},{0,1,0},{0,0,1}};
@@ -544,9 +567,28 @@ public class Polyhedron {
         System.out.println(Arrays.toString(checkCenter));
       }
     }
-    
+    //TODO Remove
     MeUtils.writeToFileOrDie("/home/erhannis/temp/d"+faces.length+"_plus.stl", this.render(arrows1));
     
     return result;
+  }
+  
+  public boolean verifyColors(Mapping m) {
+    for (Face f: this.faces) {
+      for (int i = 0; i < f.edges.length; i++) {
+        Edge e0 = f.edges[i];
+        Edge e1 = f.edges[(i+1)%f.edges.length];
+        if (e0.color == null) {
+          return false;
+        }
+        if (e1.color != f.nextColor(e0.color)) {
+          return false;
+        }
+        if (e0.dual.color != m.apply(e0.color)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }
