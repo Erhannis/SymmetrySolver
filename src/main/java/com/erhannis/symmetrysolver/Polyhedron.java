@@ -447,6 +447,11 @@ public class Polyhedron {
         break;
       }
     }
+    if (MeMath.vectorLength(primeCenter) < 0.001) {
+      // This is kindof a hack, and I'm tempted to just check if edges.length == 2 instead (also a hack)
+      //   This way seems slightly more general, though, whether or not that's wise
+      primeCenter = MeMath.crossProduct3d(prime.edges[0].va.position, prime.edges[1].va.position);
+    }
     MeMath.vectorNormalizeIP(primeCenter);
     MeMath.vectorNormalizeIP(primeEdge);
 
@@ -456,9 +461,9 @@ public class Polyhedron {
     arrows2.add(MeMath.vectorAdd(MeMath.vectorScale(primeCenter, 0.7), MeMath.vectorScale(primeEdge, 0.2)));
     
     ArrayList<double[]> arrows1 = new ArrayList<>();
-    arrows1.add(MeMath.vectorScale(primeCenter, 2.0));
-    arrows1.add(MeMath.vectorScale(primeCenter, 0.7));
-    arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(primeCenter, 0.7), MeMath.vectorScale(primeEdge, 0.2)));
+//    arrows1.add(MeMath.vectorScale(primeCenter, 2.0));
+//    arrows1.add(MeMath.vectorScale(primeCenter, 0.7));
+//    arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(primeCenter, 0.7), MeMath.vectorScale(primeEdge, 0.2)));
     for (Edge e: prime.edges) {
       if (e.color == 1) {
         arrows1.add(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(primeEdge, 0.1)));
@@ -489,23 +494,33 @@ public class Polyhedron {
         if (e.color == 1) {
           secondaryMirrored = false;
           secondaryEdge = MeMath.vectorSubtract(e.va.position, secondaryCenter);
-          
+          break;
+        } else if (e.color == -1) {
+          secondaryMirrored = true;
+          secondaryEdge = MeMath.vectorSubtract(e.vb.position, secondaryCenter);
+          break;
+        }
+      }
+      if (MeMath.vectorLength(secondaryCenter) < 0.001) {
+        // See above comment about being a hack
+        secondaryCenter = MeMath.crossProduct3d(secondary.edges[0].va.position, secondary.edges[1].va.position);
+      }
+      MeMath.vectorNormalizeIP(secondaryCenter);
+      MeMath.vectorNormalizeIP(secondaryEdge);
+
+      for (Edge e: secondary.edges) {
+        if (e.color == 1) {
           arrows1.add(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(secondaryEdge, 0.1)));
           arrows1.add(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(secondaryEdge, 0.1)));
           arrows1.add(MeMath.vectorAdd(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(secondaryEdge, 0.1)), MeMath.vectorScale(secondaryCenter, 0.1)));
           break;
         } else if (e.color == -1) {
-          secondaryMirrored = true;
-          secondaryEdge = MeMath.vectorSubtract(e.vb.position, secondaryCenter);
-
           arrows1.add(MeMath.vectorSubtract(e.vb.position, MeMath.vectorScale(secondaryEdge, 0.1)));
           arrows1.add(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(secondaryEdge, 0.1)));
           arrows1.add(MeMath.vectorAdd(MeMath.vectorSubtract(e.va.position, MeMath.vectorScale(secondaryEdge, 0.1)), MeMath.vectorScale(secondaryCenter, 0.1)));
           break;
         }
       }
-      MeMath.vectorNormalizeIP(secondaryCenter);
-      MeMath.vectorNormalizeIP(secondaryEdge);
       
       double[][] basis = {{1,0,0},{0,1,0},{0,0,1}};
 
@@ -552,13 +567,13 @@ public class Polyhedron {
       double[] checkCenter = new double[]{MeMath.dotProduct(b[0], primeCenter),MeMath.dotProduct(b[1], primeCenter),MeMath.dotProduct(b[2], primeCenter)};
       double[] checkEdge = new double[]{MeMath.dotProduct(b[0], primeEdge),MeMath.dotProduct(b[1], primeEdge),MeMath.dotProduct(b[2], primeEdge)};
 
-      arrows1.add(MeMath.vectorScale(secondaryCenter, 1.5));
-      arrows1.add(MeMath.vectorScale(secondaryCenter, 0.4));
-      arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(secondaryCenter, 0.4), MeMath.vectorScale(secondaryEdge, 0.2)));
-      
-      arrows1.add(MeMath.vectorScale(checkCenter, 1.25));
-      arrows1.add(MeMath.vectorScale(checkCenter, 0.8));
-      arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(checkCenter, 0.8), MeMath.vectorScale(checkEdge, 0.2)));
+//      arrows1.add(MeMath.vectorScale(secondaryCenter, 1.5));
+//      arrows1.add(MeMath.vectorScale(secondaryCenter, 0.4));
+//      arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(secondaryCenter, 0.4), MeMath.vectorScale(secondaryEdge, 0.2)));
+//      
+//      arrows1.add(MeMath.vectorScale(checkCenter, 1.25));
+//      arrows1.add(MeMath.vectorScale(checkCenter, 0.8));
+//      arrows1.add(MeMath.vectorAdd(MeMath.vectorScale(checkCenter, 0.8), MeMath.vectorScale(checkEdge, 0.2)));
       
       double diff = MeMath.vectorLength(MeMath.vectorSubtract(secondaryCenter, checkCenter));
       if (diff > 0.001) {
