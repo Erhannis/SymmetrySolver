@@ -255,7 +255,7 @@ public class Polyhedron {
         Random r = new Random();
         while (!looseEdges.isEmpty()) {
             if (pFaces.size() > maxFaces) {
-              System.err.println("Shape not converging!  ["+edgesPerFace+","+facesPerVertex+"]  Starting over!");
+              //System.err.println("Shape not converging!  ["+edgesPerFace+","+facesPerVertex+"]  Starting over!");
               return Polyhedron.dN(edgesPerFace, facesPerVertex, maxFaces);
             }
             Edge ripest = null;

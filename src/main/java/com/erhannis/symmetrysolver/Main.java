@@ -106,7 +106,7 @@ public class Main {
                     .map(i -> dimToColor.get(i))
                     .toArray();
           //TODO Weed out equivalent forms and clearly invalid forms
-          System.out.println("dN [" + FpV + ", " + EpF + "] " + (count[0]++));
+          //System.out.println("dN [" + FpV + ", " + EpF + "] " + (count[0]++));
           Polyhedron p = Polyhedron.dN(EpF, FpV, 100);
 
           Mapping m;
