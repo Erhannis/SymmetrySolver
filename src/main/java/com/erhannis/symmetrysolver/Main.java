@@ -27,11 +27,11 @@ public class Main {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
-    {
-        Polyhedron p = Polyhedron.dN(3, 5);
+    if (1==0) {
+        Polyhedron p = Polyhedron.dN(5, 3);
         p.faces.toString();
         p.computeVertices();
-        MeUtils.writeToFileOrDie(OUTPUT+"d20.stl", p.render());
+        MeUtils.writeToFileOrDie(OUTPUT+"d12.stl", p.render());
         if (1==1) return;
     }
       
@@ -69,22 +69,26 @@ public class Main {
     }
     
     for (int[] params : new int[][]{
-        {2,3},
+        {3,2},
+        {3,3},
+        {3,4},
+        {3,5},
+        {4,2},
         {4,3},
-        {8,3},
-        {20,3},
-        {6,4},
-        {12,5}
+        {5,2},
+        {5,3},
+        {6,2}
     }) {
-        int FACES = params[0];
-        int N = params[1];
+        //int FACES = params[0];
+        int FpV = params[0];
+        int EpF = params[1];
         
         ArrayList<Integer> dims = new ArrayList<>();
-        for (int i = 0; i < N; i++) {
-          dims.add(N*2);
+        for (int i = 0; i < EpF; i++) {
+          dims.add(EpF*2);
         }
         ArrayList<Integer> dimToColor = new ArrayList<>();
-        for (int i = -N; i <= -1; i++) {
+        for (int i = -EpF; i <= -1; i++) {
           dimToColor.add(i);
         }
         for (int i = 1; i <= 5; i++) {
@@ -97,20 +101,7 @@ public class Main {
                     .map(i -> dimToColor.get(i))
                     .toArray();
           //TODO Weed out equivalent forms and clearly invalid forms
-          Polyhedron p;
-          switch (FACES) {
-            case 2:
-              p = Polyhedron.coin(N);
-              break;
-            case 8:
-              p = Polyhedron.d8();
-              break;
-            case 12:
-              p = Polyhedron.dodecahedron();
-              break;
-            default:
-              throw new IllegalArgumentException("Unhandled face count: " + FACES);
-          }
+          Polyhedron p = Polyhedron.dN(EpF, FpV);
 
           Mapping m;
           try {
@@ -139,7 +130,7 @@ public class Main {
               System.out.println("),");
             }
             //TODO Remove
-            MeUtils.writeToFileOrDie(OUTPUT+"d"+FACES+"_"+String.join(",",IntStream.of(idxs).mapToObj(i->""+i).collect(Collectors.toList()))+".stl", p.render());
+            MeUtils.writeToFileOrDie(OUTPUT+"d"+p.faces.length+"_"+String.join(",",IntStream.of(idxs).mapToObj(i->""+i).collect(Collectors.toList()))+".stl", p.render());
 
             //System.exit(0);
 
