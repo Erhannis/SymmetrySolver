@@ -5,6 +5,7 @@
  */
 package com.erhannis.symmetrysolver;
 
+import java.util.HashSet;
 import java.util.stream.Stream;
 
 /**
@@ -25,6 +26,16 @@ public class Edge {
     this.dual = e;
     e.dual = this;
   }
+
+  public Edge prev() {
+    int idx;
+    for (idx = 0; idx < parent.edges.length; idx++) {
+      if (parent.edges[idx] == this) {
+        break;
+      }
+    }
+    return parent.edges[(idx-1+parent.edges.length) % parent.edges.length];
+  }
   
   public Edge next() {
     int idx;
@@ -34,5 +45,24 @@ public class Edge {
       }
     }
     return parent.edges[(idx+1) % parent.edges.length];
+  }
+  
+  public int countVaFaces() {
+      HashSet<Face> faces = new HashSet<>();
+      Edge e = this;
+      while (e != null) {
+          if (!faces.add(e.parent)) {
+              break;
+          }
+          e = e.prev().dual;
+      }
+      e = this.dual;
+      while (e != null) {
+          if (!faces.add(e.parent)) {
+              break;
+          }
+          e = e.next().dual;
+      }
+      return faces.size();
   }
 }

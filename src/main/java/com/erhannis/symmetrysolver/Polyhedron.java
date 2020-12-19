@@ -9,6 +9,7 @@ import com.erhannis.javastl.Stl;
 import com.erhannis.mathnstuff.MeMath;
 import com.erhannis.mathnstuff.MeUtils;
 import com.erhannis.mathnstuff.Multivector;
+import static com.erhannis.symmetrysolver.Main.OUTPUT;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -198,6 +199,103 @@ public class Polyhedron {
     }
 
     p.validateOrThrow();    
+    return p;
+  }
+
+  /**
+   * Iterates around this vertex, finds the edges with no duals, and matches them.
+   * Of the two, returns the edge whose va is the OTHER vertex, != edge.va (so you can continue to stitch),
+   * UNLESS the vertex has already been stitched (meaning we're all stitched shut)
+   * @param edge
+   * @return 
+   */
+  private static Edge stitchVaIP(Edge edge) {
+      HashSet<Face> faces = new HashSet<>();
+      Edge a = edge.prev();
+      Edge b = edge;
+      Edge e = edge;
+      while (e != null) {
+          a = e.prev();
+          if (!faces.add(e.parent)) {
+              return null;
+          }
+          e = e.prev().dual;
+      }
+      e = edge.dual;
+      while (e != null) {
+          b = e.next();
+          if (!faces.add(e.parent)) {
+              return null;
+          }
+          e = e.next().dual;
+      }
+      a.match(b);
+      return a;
+  }
+  
+  public static Polyhedron dN(int edgesPerFace, int facesPerVertex) {
+    //TODO Warn on invalid params?
+    Polyhedron p = new Polyhedron();
+    ArrayList<Face> pFaces = new ArrayList<>();
+    
+    HashSet<Edge> looseEdges = new HashSet<>();
+    {
+        {
+            Face f = new Face();
+            f.parent = p;
+            f.edges = new Edge[edgesPerFace];
+            for (int j = 0; j < f.edges.length; j++) {
+              f.edges[j] = new Edge();
+              f.edges[j].parent = f;
+              looseEdges.add(f.edges[j]);
+            }
+            pFaces.add(f);
+        }
+        
+        while (!looseEdges.isEmpty()) {
+            Edge ripest = null;
+            for (Edge e: looseEdges) {
+                if (ripest == null || e.countVaFaces() > ripest.countVaFaces()) {
+                    ripest = e;
+                }
+            }
+            Edge e = ripest;
+            looseEdges.remove(e);
+            if (e.dual != null) {
+                // Like, I could try to remove them as I go...but this is easier and safer, I think.
+                continue;
+            }
+            
+            // New face
+            Face f = new Face();
+            f.parent = p;
+            f.edges = new Edge[edgesPerFace];
+            for (int j = 0; j < f.edges.length; j++) {
+              f.edges[j] = new Edge();
+              f.edges[j].parent = f;
+              looseEdges.add(f.edges[j]);
+            }
+            pFaces.add(f);
+            
+            // Attach
+            e.match(f.edges[0]);
+            
+            Edge left = e;
+            Edge right = e.next();
+            
+            while (left != null && left.countVaFaces() == facesPerVertex) {
+                // Stitch up
+                left = stitchVaIP(left);
+            }
+            while (right != null && right.countVaFaces() == facesPerVertex) {
+                // Stitch up
+                right = stitchVaIP(right);
+            }
+        }
+    }
+    p.faces = pFaces.toArray(new Face[0]);
+    
+    p.validateOrThrow();
     return p;
   }
   
@@ -583,7 +681,7 @@ public class Polyhedron {
       }
     }
     //TODO Remove
-    MeUtils.writeToFileOrDie("/home/erhannis/temp/d"+faces.length+"_plus.stl", this.render(arrows1));
+    MeUtils.writeToFileOrDie(OUTPUT+"d"+faces.length+"_plus.stl", this.render(arrows1));
     
     return result;
   }
