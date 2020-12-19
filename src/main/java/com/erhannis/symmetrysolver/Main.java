@@ -73,6 +73,8 @@ public class Main {
     }
     
     int[] count = {0};
+    System.out.print("[");
+    boolean first1 = true;
     for (int[] params : new int[][]{
         {3,2},
         {3,3},
@@ -84,10 +86,19 @@ public class Main {
         {5,3},
         {6,2}
     }) {
+        if (!first1) {
+          System.out.println(",{");
+        } else {
+          System.out.println("{");
+        }
+        first1 = false;
         //int FACES = params[0];
-        int FpV = params[0];
-        int EpF = params[1];
-        
+        int EpF = params[0];
+        int FpV = params[1];
+        System.out.println("facesPerVertex:"+FpV+",");
+        System.out.println("edgesPerFace:"+EpF+",");
+        System.out.println("symmetries:[");
+        boolean[] first2 = {true};
         ArrayList<Integer> dims = new ArrayList<>();
         for (int i = 0; i < EpF; i++) {
           dims.add(EpF*2);
@@ -96,7 +107,7 @@ public class Main {
         for (int i = -EpF; i <= -1; i++) {
           dimToColor.add(i);
         }
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= EpF; i++) {
           dimToColor.add(i);
         }
 
@@ -122,19 +133,29 @@ public class Main {
           }
 
           if (propagate(p, m)) {
-            System.out.println("success [" + FpV + ", " + EpF + "] " + Arrays.toString(idxs));
+            if (!first2[0]) {
+              System.out.println(",{");
+            } else {
+              System.out.println("{");
+            }
+            first2[0] = false;
+            System.out.println("mapping:" + Arrays.toString(idxs) + ",");
 
             p.computeVertices();
             double[][][] mtx = p.calcSymmetryMatrices();
+            System.out.print("matrices:[");
             for (int f = 0; f < mtx.length; f++) {
+              System.out.println(f == 0 ? "[" : ",[");
               //System.out.println("face " + f);
-              System.out.println("new THREE.Matrix3().set(");
+              //System.out.println("new THREE.Matrix3().set(");
               for (int y = 0; y < mtx[f].length; y++) {
                 System.out.println(String.join(",", DoubleStream.of(mtx[f][y]).mapToObj(i->""+i).collect(Collectors.toList())) + ((y == mtx[f].length-1) ? "" : ","));
                 //System.out.println(Arrays.toString(mtx[f][y]));
               }
-              System.out.println("),");
+              System.out.print("]");
+              //System.out.println("),");
             }
+            System.out.print("]}");
             //TODO Remove
             MeUtils.writeToFileOrDie(OUTPUT+"d"+p.faces.length+"_"+String.join(",",IntStream.of(idxs).mapToObj(i->""+i).collect(Collectors.toList()))+".stl", p.render());
 
@@ -153,9 +174,10 @@ public class Main {
           }
     */
         }, dims.stream().mapToInt(i -> i).toArray());
-        
+        System.out.print("]}");
     }
-    System.out.println("done");
+    System.out.print("]");
+    System.out.println("\n\n\ndone");
   }
   
   public static boolean propagate(Polyhedron p, Mapping m) {
