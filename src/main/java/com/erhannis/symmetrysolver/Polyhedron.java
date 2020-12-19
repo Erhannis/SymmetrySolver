@@ -233,7 +233,7 @@ public class Polyhedron {
       return a;
   }
   
-  public static Polyhedron dN(int edgesPerFace, int facesPerVertex) {
+  public static Polyhedron dN(int edgesPerFace, int facesPerVertex, int maxFaces) {
     //TODO Warn on invalid params?
     Polyhedron p = new Polyhedron();
     ArrayList<Face> pFaces = new ArrayList<>();
@@ -252,11 +252,22 @@ public class Polyhedron {
             pFaces.add(f);
         }
         
+        Random r = new Random();
         while (!looseEdges.isEmpty()) {
+            if (pFaces.size() > maxFaces) {
+              System.err.println("Shape not converging!  ["+edgesPerFace+","+facesPerVertex+"]  Starting over!");
+              return Polyhedron.dN(edgesPerFace, facesPerVertex, maxFaces);
+            }
             Edge ripest = null;
             for (Edge e: looseEdges) {
-                if (ripest == null || e.countVaFaces() > ripest.countVaFaces()) {
+                if (ripest == null) {
+                  ripest = e;
+                } else {
+                  if (e.countVaFaces() > ripest.countVaFaces()) {
                     ripest = e;
+                  } else if (e.countVaFaces() == ripest.countVaFaces() && r.nextBoolean()) {
+                    ripest = e;
+                  }
                 }
             }
             Edge e = ripest;

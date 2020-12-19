@@ -28,11 +28,15 @@ public class Main {
    */
   public static void main(String[] args) {
     if (1==0) {
-        Polyhedron p = Polyhedron.dN(5, 3);
-        p.faces.toString();
-        p.computeVertices();
-        MeUtils.writeToFileOrDie(OUTPUT+"d12.stl", p.render());
-        if (1==1) return;
+      ArrayList<Polyhedron> ps = new ArrayList<>();
+
+      for (int i = 0; i < 10000; i++) {
+        ps.add(Polyhedron.dN(5, 3, 100));
+        System.out.println("ran " + ps.get(ps.size()-1).faces.length + " " + i);
+      }
+      ps.get(0).computeVertices();
+      //MeUtils.writeToFileOrDie(OUTPUT+"d12.stl", p.render());
+      //if (1==1) return;
     }
       
     if (1==0) {
@@ -68,6 +72,7 @@ public class Main {
       if (1 == 1) return;
     }
     
+    int[] count = {0};
     for (int[] params : new int[][]{
         {3,2},
         {3,3},
@@ -101,7 +106,8 @@ public class Main {
                     .map(i -> dimToColor.get(i))
                     .toArray();
           //TODO Weed out equivalent forms and clearly invalid forms
-          Polyhedron p = Polyhedron.dN(EpF, FpV);
+          System.out.println("dN [" + FpV + ", " + EpF + "] " + (count[0]++));
+          Polyhedron p = Polyhedron.dN(EpF, FpV, 100);
 
           Mapping m;
           try {
@@ -116,7 +122,7 @@ public class Main {
           }
 
           if (propagate(p, m)) {
-            System.out.println("success "+Arrays.toString(idxs));
+            System.out.println("success [" + FpV + ", " + EpF + "] " + Arrays.toString(idxs));
 
             p.computeVertices();
             double[][][] mtx = p.calcSymmetryMatrices();
